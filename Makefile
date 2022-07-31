@@ -124,7 +124,10 @@ install: $(DOCS) aerc
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
-	install -m644 contrib/aerc.desktop $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
+	sed -e 's|^Icon=.*|Icon=$(DESTDIR)$(SHAREDIR)/icon.svg|' contrib/aerc.desktop \
+		> $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
+	install -m644 contrib/icon.svg $(DESTDIR)$(SHAREDIR)/icon.svg
+	install -m644 contrib/logo.svg $(DESTDIR)$(SHAREDIR)/logo.svg
 
 .PHONY: checkinstall
 checkinstall:
