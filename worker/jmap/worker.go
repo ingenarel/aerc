@@ -177,8 +177,9 @@ func (w *JMAPWorker) Run() {
 			switch {
 			case errors.Is(err, errNoop):
 				// Operation did not have any effect.
-				// Do *NOT* send a Done message.
-				break
+				w.w.PostMessage(&types.Noop{
+					Message: types.RespondTo(msg),
+				})
 			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),

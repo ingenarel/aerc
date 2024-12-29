@@ -74,6 +74,10 @@ func (m *Message) setAccount(name string) {
 
 // Meta-messages
 
+type Noop struct {
+	Message
+}
+
 type Done struct {
 	Message
 }

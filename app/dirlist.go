@@ -29,6 +29,7 @@ type DirectoryLister interface {
 
 	Select(string)
 	Open(string, string, time.Duration, func(types.WorkerMessage), bool)
+	Context() context.Context
 
 	Update(types.WorkerMessage)
 	List() []string
@@ -92,6 +93,10 @@ func (dirlist *DirectoryList) NewContext() {
 		dirlist.cancel()
 	}
 	dirlist.ctx, dirlist.cancel = context.WithCancel(context.Background())
+}
+
+func (dirlist *DirectoryList) Context() context.Context {
+	return dirlist.ctx
 }
 
 func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {

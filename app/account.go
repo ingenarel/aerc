@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -381,6 +382,21 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	store.Configure(acct.SortCriteria(uiConf))
 	store.SetMarker(marker.New(store))
 	return store
+}
+
+func (acct *AccountView) Settle(ctx context.Context) (err error) {
+	ch := make(chan struct{})
+	acct.worker.PostAction(
+		&types.Noop{Message: types.WithContext(ctx)},
+		func(types.WorkerMessage) { close(ch) },
+	)
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
+	case <-ch:
+		break
+	}
+	return err
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {

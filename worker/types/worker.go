@@ -107,6 +107,7 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	worker.setId(msg)
 	if cb != nil {
 		worker.Lock()
+		worker.Infof("PostAction %T %d callback %+v", msg, msg.getId(), cb)
 		worker.actionCallbacks[msg.getId()] = cb
 		worker.Unlock()
 	}
@@ -119,17 +120,26 @@ var WorkerMessages = make(chan WorkerMessage, 50)
 // PostMessage posts an message to the UI. This method should not be called
 // from the same goroutine that the UI runs in or deadlocks may occur
 func (worker *Worker) PostMessage(msg WorkerMessage) {
+	var reqid uint64
+	req := msg.InResponseTo()
+	if req != nil {
+		reqid = req.getId()
+	}
 	worker.setId(msg)
 	msg.setAccount(worker.name)
+	worker.Infof("PostMessage %T %d (reply to %d)", msg, msg.getId(), reqid)
 	WorkerMessages <- msg
+	worker.Infof("PostMessage %T %d (reply to %d) ok", msg, msg.getId(), reqid)
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
+	worker.Infof("ProcessMessage %T %d", msg, msg.getId())
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
 		f, ok := worker.actionCallbacks[inResponseTo.getId()]
 		worker.Unlock()
 		if ok {
+			worker.Infof("ProcessMessage %T %d callback %+v", msg, msg.getId(), f)
 			f(msg)
 			switch msg.(type) {
 			case *Cancelled, *Done:
@@ -140,14 +150,18 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 		}
 	}
 	if msg.Cancelled() {
+		worker.Infof("ProcessMessage %T %d cancelled", msg, msg.getId())
 		msg = &Cancelled{Message: RespondTo(msg.InResponseTo())}
 	}
 	return msg
 }
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
+	worker.Infof("ProcessAction %T %d", msg, msg.getId())
 	if msg.Cancelled() {
 		worker.PostMessage(&Cancelled{Message: RespondTo(msg)})
+	} else if _, ok := msg.(*Noop); ok {
+		worker.PostMessage(&Done{Message: RespondTo(msg)})
 	}
 	return msg
 }

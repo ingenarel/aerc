@@ -16,6 +16,7 @@ type ExLine struct {
 	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string)
 	cmdHistory  lib.History
 	input       *ui.TextInput
+	async       bool
 }
 
 func NewExLine(cmd string, commit func(cmd string), finish func(),
@@ -37,6 +38,7 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 		tabcomplete: tabcomplete,
 		cmdHistory:  cmdHistory,
 		input:       input,
+		async:       true,
 	}
 	return exline
 }
@@ -67,6 +69,7 @@ func NewPrompt(prompt string, commit func(text string),
 		tabcomplete: tabcomplete,
 		cmdHistory:  &nullHistory{input: input},
 		input:       input,
+		async:       false,
 	}
 	return exline
 }
@@ -89,8 +92,15 @@ func (ex *ExLine) Event(event vaxis.Event) bool {
 		case key.Matches(vaxis.KeyEnter), key.Matches('j', vaxis.ModCtrl):
 			cmd := ex.input.String()
 			ex.input.Focus(false)
-			ex.commit(cmd)
-			ex.finish()
+			if ex.async {
+				go func() {
+					ex.commit(cmd)
+					ex.finish()
+				}()
+			} else {
+				ex.commit(cmd)
+				ex.finish()
+			}
 		case key.Matches(vaxis.KeyUp):
 			ex.input.Set(ex.cmdHistory.Prev())
 			ex.Invalidate()
@@ -104,8 +114,9 @@ func (ex *ExLine) Event(event vaxis.Event) bool {
 		default:
 			return ex.input.Event(event)
 		}
+		return true
 	}
-	return true
+	return false
 }
 
 type nullHistory struct {
