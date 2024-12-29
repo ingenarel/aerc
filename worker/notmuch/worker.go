@@ -82,6 +82,9 @@ func (w *worker) Run() {
 		select {
 		case action := <-w.w.Actions():
 			msg := w.w.ProcessAction(action)
+			if msg.Cancelled() {
+				continue
+			}
 			err := w.handleMessage(msg)
 			switch {
 			case errors.Is(err, errUnsupported):
@@ -89,10 +92,6 @@ func (w *worker) Run() {
 					Message: types.RespondTo(msg),
 				})
 				w.w.Errorf("ProcessAction(%T) unsupported: %v", msg, err)
-			case errors.Is(err, context.Canceled):
-				w.w.PostMessage(&types.Cancelled{
-					Message: types.RespondTo(msg),
-				})
 			case err != nil:
 				w.w.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
@@ -354,9 +353,6 @@ func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryIn
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	if msg.Context.Err() != nil {
-		return context.Canceled
-	}
 	w.w.Tracef("opening %s with query %s", msg.Directory, msg.Query)
 
 	var exists bool
@@ -592,7 +588,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	search := notmuch.AndQueries(w.query, translate(msg.Criteria))
 	log.Debugf("search query: '%s'", search)
-	uids, err := w.uidsFromQuery(msg.Context, search)
+	uids, err := w.uidsFromQuery(msg.Context(), search)
 	if err != nil {
 		return err
 	}
@@ -655,7 +651,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
 		query = notmuch.AndQueries(query, translate(msg.Filter))
 		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context
+		ctx = msg.Context()
 	}
 	uids, err := w.uidsFromQuery(ctx, query)
 	if err != nil {
@@ -680,7 +676,7 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
 		query = notmuch.AndQueries(query, translate(msg.Filter))
 		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context
+		ctx = msg.Context()
 		threadContext = msg.ThreadContext
 	}
 	threads, err := w.db.ThreadsFromQuery(ctx, query, threadContext)
@@ -887,12 +883,13 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 
 	var err error
 	for _, uid := range msg.Uids {
-		m, err := w.msgFromUid(uid)
+		var m *Message
+		m, err = w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
 			break
 		}
-		if err := m.Move(curDir, dest, mfs); err != nil {
+		if err = m.Move(curDir, dest, mfs); err != nil {
 			w.w.Errorf("could not move message: %v", err)
 			break
 		}

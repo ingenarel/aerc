@@ -424,6 +424,10 @@ func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.worker.Actions():
+			msg = w.worker.ProcessAction(msg)
+			if msg.Cancelled() {
+				continue
+			}
 
 			if err := w.stopIdler(); err != nil {
 				w.worker.PostMessage(&types.Error{
@@ -433,8 +437,6 @@ func (w *IMAPWorker) Run() {
 				break
 			}
 			w.worker.Tracef("ready to handle %T", msg)
-
-			msg = w.worker.ProcessAction(msg)
 
 			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 				w.worker.PostMessage(&types.Unsupported{

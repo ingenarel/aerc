@@ -170,6 +170,9 @@ func (w *JMAPWorker) Run() {
 			}
 		case msg := <-w.w.Actions():
 			msg = w.w.ProcessAction(msg)
+			if msg.Cancelled() {
+				continue
+			}
 			err := w.handleMessage(msg)
 			switch {
 			case errors.Is(err, errNoop):

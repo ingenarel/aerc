@@ -174,7 +174,7 @@ func (store *MessageStore) FetchHeaders(uids []models.UID,
 	}
 	if len(toFetch) > 0 {
 		store.worker.PostAction(&types.FetchMessageHeaders{
-			Context: store.ctx,
+			Message: types.WithContext(store.ctx),
 			Uids:    toFetch,
 		},
 			func(msg types.WorkerMessage) {
@@ -857,7 +857,7 @@ func (store *MessageStore) Prev() {
 
 func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]models.UID)) {
 	store.worker.PostAction(&types.SearchDirectory{
-		Context:  store.ctx,
+		Message:  types.WithContext(store.ctx),
 		Criteria: terms,
 	}, func(msg types.WorkerMessage) {
 		if msg, ok := msg.(*types.SearchResults); ok {
@@ -973,14 +973,14 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 
 	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(&types.FetchDirectoryThreaded{
-			Context:       store.ctx,
+			Message:       types.WithContext(store.ctx),
 			SortCriteria:  criteria,
 			Filter:        store.filter,
 			ThreadContext: store.threadContext,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(&types.FetchDirectoryContents{
-			Context:      store.ctx,
+			Message:      types.WithContext(store.ctx),
 			SortCriteria: criteria,
 			Filter:       store.filter,
 		}, handle_return)
@@ -1030,7 +1030,7 @@ func (store *MessageStore) fetchFlags() {
 	store.fetchFlagsDebounce = time.AfterFunc(store.fetchFlagsDelay, func() {
 		store.Lock()
 		store.worker.PostAction(&types.FetchMessageFlags{
-			Context: store.ctx,
+			Message: types.WithContext(store.ctx),
 			Uids:    store.needsFlags,
 		}, nil)
 		store.needsFlags = []models.UID{}

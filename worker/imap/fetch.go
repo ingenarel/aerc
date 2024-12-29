@@ -38,12 +38,6 @@ func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.Message
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
 ) {
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
-		return
-	}
 	toFetch := msg.Uids
 	cacheEnabled := imapw.config.cacheEnabled && imapw.cache != nil
 	if cacheEnabled {
@@ -255,13 +249,6 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 	items := []imap.FetchItem{
 		imap.FetchFlags,
 		imap.FetchUid,
-	}
-
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
-		return
 	}
 	imapw.handleFetchMessages(msg, msg.Uids, items,
 		func(_msg *imap.Message) error {

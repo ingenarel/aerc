@@ -392,6 +392,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 func (w *mboxWorker) Run() {
 	for msg := range w.worker.Actions() {
 		msg = w.worker.ProcessAction(msg)
+		if msg.Cancelled() {
+			continue
+		}
 		if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 			w.worker.PostMessage(&types.Unsupported{
 				Message: types.RespondTo(msg),

@@ -11,6 +11,8 @@ import (
 )
 
 type WorkerMessage interface {
+	Context() context.Context
+	Cancelled() bool
 	InResponseTo() WorkerMessage
 	getId() int64
 	setId(id int64)
@@ -22,6 +24,7 @@ type Message struct {
 	inResponseTo WorkerMessage
 	id           int64
 	acct         string
+	ctx          context.Context
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -30,8 +33,27 @@ func RespondTo(msg WorkerMessage) Message {
 	}
 }
 
+func WithContext(ctx context.Context) Message {
+	return Message{ctx: ctx}
+}
+
 func (m Message) InResponseTo() WorkerMessage {
 	return m.inResponseTo
+}
+
+func (m Message) Context() context.Context {
+	var ctx context.Context
+	if irp := m.InResponseTo(); irp != nil {
+		ctx = irp.Context()
+	} else {
+		ctx = m.ctx
+	}
+	return ctx
+}
+
+func (m Message) Cancelled() bool {
+	ctx := m.Context()
+	return ctx != nil && ctx.Err() != nil
 }
 
 func (m Message) getId() int64 {
@@ -99,7 +121,6 @@ type ListDirectories struct {
 
 type OpenDirectory struct {
 	Message
-	Context   context.Context
 	Directory string
 	Query     string
 	Force     bool
@@ -107,14 +128,12 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
-	Context      context.Context
 	SortCriteria []*SortCriterion
 	Filter       *SearchCriteria
 }
 
 type FetchDirectoryThreaded struct {
 	Message
-	Context       context.Context
 	SortCriteria  []*SortCriterion
 	Filter        *SearchCriteria
 	ThreadContext bool
@@ -122,7 +141,6 @@ type FetchDirectoryThreaded struct {
 
 type SearchDirectory struct {
 	Message
-	Context  context.Context
 	Criteria *SearchCriteria
 }
 
@@ -145,8 +163,7 @@ type RemoveDirectory struct {
 
 type FetchMessageHeaders struct {
 	Message
-	Context context.Context
-	Uids    []models.UID
+	Uids []models.UID
 }
 
 type FetchFullMessages struct {
@@ -162,8 +179,7 @@ type FetchMessageBodyPart struct {
 
 type FetchMessageFlags struct {
 	Message
-	Context context.Context
-	Uids    []models.UID
+	Uids []models.UID
 }
 
 type DeleteMessages struct {

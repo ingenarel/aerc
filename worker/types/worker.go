@@ -140,10 +140,16 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 			}
 		}
 	}
+	if msg.Cancelled() {
+		msg = &Cancelled{Message: RespondTo(msg.InResponseTo())}
+	}
 	return msg
 }
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
+	if msg.Cancelled() {
+		worker.PostMessage(&Cancelled{Message: RespondTo(msg)})
+	}
 	return msg
 }
 

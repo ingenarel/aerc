@@ -122,6 +122,9 @@ func (w *Worker) PathSeparator() string {
 
 func (w *Worker) handleAction(action types.WorkerMessage) {
 	msg := w.worker.ProcessAction(action)
+	if msg.Cancelled() {
+		return
+	}
 	switch msg := msg.(type) {
 	// Explicitly handle all asynchronous actions. Async actions are
 	// responsible for posting their own Done message
@@ -375,7 +378,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	return nil
 }
 
-func (w *Worker) handleConnect(msg *types.Connect) error {
+func (w *Worker) handleConnect(*types.Connect) error {
 	return nil
 }
 
@@ -460,7 +463,7 @@ func (w *Worker) handleFetchDirectoryContents(
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context, msg.Filter)
+		uids, err = w.search(msg.Context(), msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -477,7 +480,7 @@ func (w *Worker) handleFetchDirectoryContents(
 			})
 		}
 	}
-	sortedUids, err := w.sort(msg.Context, uids, msg.SortCriteria)
+	sortedUids, err := w.sort(msg.Context(), uids, msg.SortCriteria)
 	if err != nil {
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
@@ -544,7 +547,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context, msg.Filter)
+		uids, err = w.search(msg.Context(), msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -555,7 +558,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 			return err
 		}
 	}
-	threads, err := w.threads(msg.Context, uids, msg.SortCriteria)
+	threads, err := w.threads(msg.Context(), uids, msg.SortCriteria)
 	if err != nil {
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
@@ -885,7 +888,7 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	w.worker.Tracef("Searching with criteria: %#v", msg.Criteria)
-	uids, err := w.search(msg.Context, msg.Criteria)
+	uids, err := w.search(msg.Context(), msg.Criteria)
 	if err != nil {
 		return err
 	}

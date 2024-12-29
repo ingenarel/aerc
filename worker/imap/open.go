@@ -21,7 +21,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 		return
 	}
 	select {
-	case <-msg.Context.Done():
+	case <-msg.Context().Done():
 		imapw.worker.PostMessage(&types.Cancelled{Message: types.RespondTo(msg)})
 	default:
 		imapw.selected = sel
@@ -32,12 +32,6 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) {
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
-		return
-	}
 	imapw.worker.Tracef("Fetching UID list")
 
 	searchCriteria := translateSearch(msg.Filter)
@@ -75,7 +69,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			return
 		}
 	}
-	if msg.Context.Err() != nil {
+	if msg.Cancelled() {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		})
@@ -122,12 +116,6 @@ func translateSortCriterions(
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) {
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
-		return
-	}
 	imapw.worker.Tracef("Fetching threaded UID list")
 
 	searchCriteria := translateSearch(msg.Filter)
@@ -154,7 +142,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		}
 		imapw.seqMap.Initialize(uids)
 	}
-	if msg.Context.Err() != nil {
+	if msg.Cancelled() {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		})

@@ -137,23 +137,9 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 	imapw.worker.Tracef("Executing search")
 	criteria := translateSearch(msg.Criteria)
 
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
-		return
-	}
-
 	uids, err := imapw.client.UidSearch(criteria)
 	if err != nil {
 		emitError(err)
-		return
-	}
-
-	if msg.Context.Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		})
 		return
 	}
 
