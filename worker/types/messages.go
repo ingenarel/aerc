@@ -14,15 +14,15 @@ type WorkerMessage interface {
 	Context() context.Context
 	Cancelled() bool
 	InResponseTo() WorkerMessage
-	getId() int64
-	setId(id int64)
+	getId() uint64
+	setId(id uint64)
 	Account() string
 	setAccount(string)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
-	id           int64
+	id           uint64
 	acct         string
 	ctx          context.Context
 }
@@ -56,11 +56,11 @@ func (m Message) Cancelled() bool {
 	return ctx != nil && ctx.Err() != nil
 }
 
-func (m Message) getId() int64 {
+func (m Message) getId() uint64 {
 	return m.id
 }
 
-func (m *Message) setId(id int64) {
+func (m *Message) setId(id uint64) {
 	m.id = id
 }
 

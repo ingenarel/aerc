@@ -19,8 +19,6 @@ type WorkerInteractor interface {
 	Name() string
 }
 
-var lastId int64 = 1 // access via atomic
-
 type Backend interface {
 	Run()
 	Capabilities() *models.Capabilities
@@ -31,7 +29,7 @@ type Worker struct {
 	Backend Backend
 
 	actions         chan WorkerMessage
-	actionCallbacks map[int64]func(msg WorkerMessage)
+	actionCallbacks map[uint64]func(msg WorkerMessage)
 	actionQueue     *list.List
 	status          int32
 	name            string
@@ -44,7 +42,7 @@ func NewWorker(name string) *Worker {
 	return &Worker{
 		Logger:          log.NewLogger(name, 2),
 		actions:         make(chan WorkerMessage),
-		actionCallbacks: make(map[int64]func(msg WorkerMessage)),
+		actionCallbacks: make(map[uint64]func(msg WorkerMessage)),
 		actionQueue:     list.New(),
 		name:            name,
 	}
@@ -62,9 +60,10 @@ func (worker *Worker) Name() string {
 	return worker.name
 }
 
+var lastId atomic.Uint64
+
 func (worker *Worker) setId(msg WorkerMessage) {
-	id := atomic.AddInt64(&lastId, 1)
-	msg.setId(id)
+	msg.setId(lastId.Add(1))
 }
 
 const (
