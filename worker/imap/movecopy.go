@@ -13,14 +13,14 @@ func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	} else {
 		imapw.worker.PostMessage(&types.MessagesCopied{
 			Message:     types.RespondTo(msg),
 			Destination: msg.Destination,
 			Uids:        msg.Uids,
-		}, nil)
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		})
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }
 
@@ -42,9 +42,9 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }
 
@@ -60,13 +60,13 @@ func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	} else {
 		imapw.worker.PostMessage(&types.MessagesMoved{
 			Message:     types.RespondTo(msg),
 			Destination: msg.Destination,
 			Uids:        msg.Uids,
-		}, nil)
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		})
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }

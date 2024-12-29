@@ -55,12 +55,12 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			imapw.worker.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
 				Dir:     dir,
-			}, nil)
+			})
 		}
 
 		if useLabels {
 			imapw.worker.Debugf("Available labels: %s", labels)
-			imapw.worker.PostMessage(&types.LabelList{Labels: labels}, nil)
+			imapw.worker.PostMessage(&types.LabelList{Labels: labels})
 		}
 
 		done <- nil
@@ -84,7 +84,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			imapw.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 			return
 
 		}
@@ -96,7 +96,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 					Recent: int(status.Recent),
 					Unseen: int(status.Unseen),
 				},
-			}, nil)
+			})
 		}
 	default:
 		err := imapw.client.List("", "*", mailboxes)
@@ -105,13 +105,13 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			imapw.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 			return
 		}
 	}
 	<-done
 	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+		&types.Done{Message: types.RespondTo(msg)})
 }
 
 const NonExistentAttr = "\\NonExistent"
@@ -131,7 +131,7 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	}
 
 	imapw.worker.Tracef("Executing search")
@@ -140,7 +140,7 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 
@@ -153,12 +153,12 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 
 	imapw.worker.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
 		Uids:    models.Uint32ToUidList(uids),
-	}, nil)
+	})
 }

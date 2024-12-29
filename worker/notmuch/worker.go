@@ -87,17 +87,17 @@ func (w *worker) Run() {
 			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
-				}, nil)
+				})
 				w.w.Errorf("ProcessAction(%T) unsupported: %v", msg, err)
 			case errors.Is(err, context.Canceled):
 				w.w.PostMessage(&types.Cancelled{
 					Message: types.RespondTo(msg),
-				}, nil)
+				})
 			case err != nil:
 				w.w.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
+				})
 				w.w.Errorf("ProcessAction(%T) failure: %v", msg, err)
 			}
 		case <-w.nmStateChange:
@@ -130,14 +130,14 @@ func (w *worker) PathSeparator() string {
 }
 
 func (w *worker) done(msg types.WorkerMessage) {
-	w.w.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	w.w.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 }
 
 func (w *worker) err(msg types.WorkerMessage, err error) {
 	w.w.PostMessage(&types.Error{
 		Message: types.RespondTo(msg),
 		Error:   err,
-	}, nil)
+	})
 }
 
 func (w *worker) handleMessage(msg types.WorkerMessage) error {
@@ -299,7 +299,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 				Dir: &models.Directory{
 					Name: name,
 				},
-			}, nil)
+			})
 		}
 	}
 
@@ -310,7 +310,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 				Name: name,
 				Role: models.QueryRole,
 			},
-		}, nil)
+		})
 	}
 
 	for name := range w.dynamicNameQueryMap {
@@ -320,7 +320,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 				Name: name,
 				Role: models.QueryRole,
 			},
-		}, nil)
+		})
 	}
 
 	// Update dir counts when listing directories
@@ -391,7 +391,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 				Name: msg.Directory,
 				Role: models.QueryRole,
 			},
-		}, nil)
+		})
 	} else if msg.Query != "" && msg.Query != q {
 		return errors.New("cannot use existing folder name for new query")
 	}
@@ -401,12 +401,12 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.w.PostMessage(&types.DirectoryInfo{
 		Info:    w.getDirectoryInfo(msg.Directory, w.query),
 		Message: types.RespondTo(msg),
-	}, nil)
+	})
 	if !exists {
 		w.w.PostMessage(&types.DirectoryInfo{
 			Info:    w.getDirectoryInfo(msg.Directory, w.query),
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 	}
 	w.done(msg)
 	return nil
@@ -499,7 +499,7 @@ func (w *worker) handleFetchMessageBodyPart(
 			Reader: r,
 			Uid:    msg.Uid,
 		},
-	}, nil)
+	})
 
 	w.done(msg)
 	return nil
@@ -528,7 +528,7 @@ func (w *worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 				Uid:    uid,
 				Reader: bytes.NewReader(b),
 			},
-		}, nil)
+		})
 	}
 	w.done(msg)
 	return nil
@@ -599,7 +599,7 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	w.w.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
 		Uids:    uids,
-	}, nil)
+	})
 	return nil
 }
 
@@ -669,7 +669,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	w.w.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(parent),
 		Uids:    sortedUids,
-	}, nil)
+	})
 	return nil
 }
 
@@ -689,7 +689,7 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	}
 	w.w.PostMessage(&types.DirectoryThreaded{
 		Threads: threads,
-	}, nil)
+	})
 	return nil
 }
 
@@ -702,7 +702,7 @@ func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid models.UID, e
 			Error:    err,
 		},
 		Message: types.RespondTo(msg),
-	}, nil)
+	})
 }
 
 func (w *worker) emitMessageInfo(m *Message,
@@ -722,19 +722,19 @@ func (w *worker) emitMessageInfo(m *Message,
 	case nil:
 		w.w.PostMessage(&types.MessageInfo{
 			Info: info,
-		}, nil)
+		})
 	default:
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(parent),
 			Info:    info,
-		}, nil)
+		})
 	}
 	return nil
 }
 
 func (w *worker) emitLabelList() {
 	tags := w.db.ListTags()
-	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
+	w.w.PostMessage(&types.LabelList{Labels: tags})
 }
 
 func (w *worker) sort(uids []models.UID,
@@ -818,7 +818,7 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		w.w.PostMessage(&types.MessagesDeleted{
 			Message: types.RespondTo(msg),
 			Uids:    deleted,
-		}, nil)
+		})
 		w.done(msg)
 	}
 	return nil
@@ -858,7 +858,7 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 		Message:     types.RespondTo(msg),
 		Destination: msg.Destination,
 		Uids:        msg.Uids,
-	}, nil)
+	})
 	w.done(msg)
 	return nil
 }
@@ -901,7 +901,7 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 	w.w.PostMessage(&types.MessagesDeleted{
 		Message: types.RespondTo(msg),
 		Uids:    moved,
-	}, nil)
+	})
 	if err == nil {
 		w.done(msg)
 	}
@@ -945,7 +945,7 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 
 	w.w.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
-	}, nil)
+	})
 	w.done(msg)
 	return nil
 }

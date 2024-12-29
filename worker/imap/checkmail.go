@@ -37,7 +37,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 			return
 		}
 	default:
@@ -52,7 +52,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				w.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
+				})
 				continue
 			}
 			statuses = append(statuses, status)
@@ -80,14 +80,14 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				Unseen: int(status.Unseen),
 			},
 			Refetch: refetch,
-		}, nil)
+		})
 	}
 	if len(remaining) > 0 {
 		w.worker.PostMessage(&types.CheckMailDirectories{
 			Message:     types.RespondTo(msg),
 			Directories: remaining,
-		}, nil)
+		})
 		return
 	}
-	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 }

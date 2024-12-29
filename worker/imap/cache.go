@@ -155,7 +155,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []models.U
 			Message:    types.RespondTo(msg),
 			Info:       mi,
 			NeedsFlags: true,
-		}, nil)
+		})
 	}
 	return need
 }

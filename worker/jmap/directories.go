@@ -90,7 +90,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 	}
 	if w.config.useLabels {
 		sort.Strings(labels)
-		w.w.PostMessage(&types.LabelList{Labels: labels}, nil)
+		w.w.PostMessage(&types.LabelList{Labels: labels})
 	}
 
 	for _, id := range ids {
@@ -111,7 +111,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 				Unseen: int(mbox.UnreadEmails),
 				Role:   jmapRole2aerc[mbox.Role],
 			},
-		}, nil)
+		})
 	}
 
 	return nil
@@ -181,7 +181,7 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 	w.w.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
 		Uids:    uids,
-	}, nil)
+	})
 
 	return nil
 }
@@ -209,7 +209,7 @@ func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 			w.w.PostMessage(&types.SearchResults{
 				Message: types.RespondTo(msg),
 				Uids:    uids,
-			}, nil)
+			})
 		case *jmap.MethodError:
 			return wrapMethodError(r)
 		}

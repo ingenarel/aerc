@@ -68,7 +68,7 @@ func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable b
 		// Get the UI updated immediately
 		w.w.PostMessage(&types.MessageInfo{
 			Info: w.translateMsgInfo(m),
-		}, nil)
+		})
 	}
 
 	return nil

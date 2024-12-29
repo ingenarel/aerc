@@ -12,8 +12,8 @@ func (imapw *IMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }

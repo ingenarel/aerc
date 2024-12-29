@@ -134,16 +134,16 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 		case errors.Is(err, errUnsupported):
 			w.worker.PostMessage(&types.Unsupported{
 				Message: types.RespondTo(msg),
-			}, nil)
+			})
 		case errors.Is(err, context.Canceled):
 			w.worker.PostMessage(&types.Cancelled{
 				Message: types.RespondTo(msg),
-			}, nil)
+			})
 		case err != nil:
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 		default:
 			w.done(msg)
 		}
@@ -165,18 +165,18 @@ func (w *Worker) handleFSEvent() {
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info:    w.selectedInfo,
 		Refetch: true,
-	}, nil)
+	})
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
-	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 }
 
 func (w *Worker) err(msg types.WorkerMessage, err error) {
 	w.worker.PostMessage(&types.Error{
 		Message: types.RespondTo(msg),
 		Error:   err,
-	}, nil)
+	})
 }
 
 func splitMaildirFile(name string) (uniq string, flags []maildir.Flag, err error) {
@@ -397,11 +397,11 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 			Dir: &models.Directory{
 				Name: name,
 			},
-		}, nil)
+		})
 
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.getDirectoryInfo(name),
-		}, nil)
+		})
 	}
 	return nil
 }
@@ -448,7 +448,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		Info: w.getDirectoryInfo(msg.Directory),
 	}
 	w.selectedInfo = info.Info
-	w.worker.PostMessage(info, nil)
+	w.worker.PostMessage(info)
 	return nil
 }
 
@@ -474,7 +474,7 @@ func (w *Worker) handleFetchDirectoryContents(
 		if err != nil {
 			w.worker.PostMessage(&types.Error{
 				Error: fmt.Errorf("could not get all uids for %s: %w", *w.selected, err),
-			}, nil)
+			})
 		}
 	}
 	sortedUids, err := w.sort(msg.Context, uids, msg.SortCriteria)
@@ -486,7 +486,7 @@ func (w *Worker) handleFetchDirectoryContents(
 	w.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
 		Uids:    sortedUids,
-	}, nil)
+	})
 	return nil
 }
 
@@ -564,7 +564,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 	w.worker.PostMessage(&types.DirectoryThreaded{
 		Message: types.RespondTo(msg),
 		Threads: threads,
-	}, nil)
+	})
 	return nil
 }
 
@@ -654,7 +654,7 @@ func (w *Worker) handleFetchMessageHeaders(
 					Error:    err,
 				},
 				Message: types.RespondTo(msg),
-			}, nil)
+			})
 			continue
 		}
 		switch {
@@ -666,7 +666,7 @@ func (w *Worker) handleFetchMessageHeaders(
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
-		}, nil)
+		})
 		w.c.ClearRecentFlag(uid)
 	}
 	return nil
@@ -694,7 +694,7 @@ func (w *Worker) handleFetchMessageBodyPart(
 			Reader: r,
 			Uid:    msg.Uid,
 		},
-	}, nil)
+	})
 
 	return nil
 }
@@ -722,11 +722,11 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 				Uid:    uid,
 				Reader: bytes.NewReader(b),
 			},
-		}, nil)
+		})
 	}
 	w.worker.PostMessage(&types.Done{
 		Message: types.RespondTo(msg),
-	}, nil)
+	})
 	return nil
 }
 
@@ -736,7 +736,7 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		w.worker.PostMessage(&types.MessagesDeleted{
 			Message: types.RespondTo(msg),
 			Uids:    deleted,
-		}, nil)
+		})
 	}
 	if err != nil {
 		w.worker.Errorf("failed removing messages: %v", err)
@@ -768,11 +768,11 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
-		}, nil)
+		})
 
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.getDirectoryInfo(w.selectedName),
-		}, nil)
+		})
 	}
 	return nil
 }
@@ -793,7 +793,7 @@ func (w *Worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
 
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.getDirectoryInfo(w.selectedName),
-		}, nil)
+		})
 	}
 	return nil
 }
@@ -822,12 +822,12 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
-		}, nil)
+		})
 	}
 
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(w.selectedName),
-	}, nil)
+	})
 
 	return nil
 }
@@ -842,7 +842,7 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 		Message:     types.RespondTo(msg),
 		Destination: msg.Destination,
 		Uids:        msg.Uids,
-	}, nil)
+	})
 	return nil
 }
 
@@ -853,11 +853,11 @@ func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
 		Message:     types.RespondTo(msg),
 		Destination: msg.Destination,
 		Uids:        moved,
-	}, nil)
+	})
 	w.worker.PostMessage(&types.MessagesDeleted{
 		Message: types.RespondTo(msg),
 		Uids:    moved,
-	}, nil)
+	})
 	return err
 }
 
@@ -876,10 +876,10 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 	}
 	w.worker.PostMessage(&types.Done{
 		Message: types.RespondTo(msg),
-	}, nil)
+	})
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(msg.Destination),
-	}, nil)
+	})
 	return nil
 }
 
@@ -892,7 +892,7 @@ func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	w.worker.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
 		Uids:    uids,
-	}, nil)
+	})
 	return nil
 }
 
@@ -969,7 +969,7 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 				dirInfo := w.getDirectoryInfo(name)
 				w.worker.PostMessage(&types.DirectoryInfo{
 					Info: dirInfo,
-				}, nil)
+				})
 			}
 			w.done(msg)
 		}

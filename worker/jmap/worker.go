@@ -179,18 +179,18 @@ func (w *JMAPWorker) Run() {
 			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
-				}, nil)
+				})
 			case err != nil:
 				w.w.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
+				})
 			default: // err == nil
 				// Operation is finished.
 				// Send a Done message.
 				w.w.PostMessage(&types.Done{
 					Message: types.RespondTo(msg),
-				}, nil)
+				})
 			}
 		}
 	}

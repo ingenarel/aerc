@@ -41,7 +41,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	toFetch := msg.Uids
@@ -50,8 +50,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		toFetch = imapw.getCachedHeaders(msg)
 	}
 	if len(toFetch) == 0 {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)},
-			nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 		return
 	}
 	imapw.worker.Tracef("Fetching message headers: %v", toFetch)
@@ -120,7 +119,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,
-			}, nil)
+			})
 			if imapw.config.cacheEnabled && imapw.cache != nil {
 				imapw.cacheHeader(info)
 			}
@@ -189,7 +188,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 					Reader: part.Body,
 					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
-			}, nil)
+			})
 			// Update flags (to mark message as read)
 			info := &models.MessageInfo{
 				Flags: translateImapFlags(_msg.Flags),
@@ -201,7 +200,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,
-			}, nil)
+			})
 			return nil
 		})
 }
@@ -235,7 +234,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 					Reader: bufio.NewReader(r),
 					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
-			}, nil)
+			})
 			// Update flags (to mark message as read)
 			info := &models.MessageInfo{
 				Flags: translateImapFlags(_msg.Flags),
@@ -247,7 +246,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,
-			}, nil)
+			})
 			return nil
 		})
 }
@@ -261,7 +260,7 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	imapw.handleFetchMessages(msg, msg.Uids, items,
@@ -278,7 +277,7 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,
-			}, nil)
+			})
 			return nil
 		})
 }
@@ -309,7 +308,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 						Uid:   models.Uint32ToUid(_msg.Uid),
 						Error: err,
 					},
-				}, nil)
+				})
 			}
 		}
 		close(done)
@@ -324,7 +323,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 		return
 	}
 	<-done
@@ -336,9 +335,9 @@ func (imapw *IMAPWorker) handleFetchMessages(
 				Uid:   uid,
 				Error: fmt.Errorf("invalid response from server (detailed error in log)"),
 			},
-		}, nil)
+		})
 	}
 
 	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+		&types.Done{Message: types.RespondTo(msg)})
 }

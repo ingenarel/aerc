@@ -40,7 +40,7 @@ func (w *JMAPWorker) monitorChanges() {
 		if err != nil {
 			w.w.PostMessage(&types.Error{
 				Error: fmt.Errorf("jmap listen: %w", err),
-			}, nil)
+			})
 			time.Sleep(5 * time.Second)
 		}
 	}
@@ -186,7 +186,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				if ok {
 					w.w.PostMessage(&types.RemoveDirectory{
 						Directory: dir,
-					}, nil)
+					})
 				}
 				w.deleteMbox(id)
 				err = w.cache.DeleteMailbox(id)
@@ -255,7 +255,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 					if m.MailboxIDs[w.selectedMbox] {
 						w.w.PostMessage(&types.MessageInfo{
 							Info: w.translateMsgInfo(m),
-						}, nil)
+						})
 					}
 				}
 				err = w.cache.PutEmailState(r.State)
@@ -274,7 +274,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 					info.Flags |= models.RecentFlag
 					w.w.PostMessage(&types.MessageInfo{
 						Info: info,
-					}, nil)
+					})
 				}
 				err = w.cache.PutEmailState(r.State)
 				if err != nil {
@@ -306,7 +306,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 						Exists: int(mbox.TotalEmails),
 						Unseen: int(mbox.UnreadEmails),
 					},
-				}, nil)
+				})
 
 				updatedMboxes = append(updatedMboxes, id)
 			} else {
@@ -314,7 +314,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				w.deleteMbox(id)
 				w.w.PostMessage(&types.RemoveDirectory{
 					Directory: dir,
-				}, nil)
+				})
 				dir = newDir
 			}
 		}
@@ -327,7 +327,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				Unseen: int(mbox.UnreadEmails),
 				Role:   jmapRole2aerc[mbox.Role],
 			},
-		}, nil)
+		})
 		labelsChanged = true
 	}
 
@@ -337,7 +337,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			labels = append(labels, dir)
 		}
 		sort.Strings(labels)
-		w.w.PostMessage(&types.LabelList{Labels: labels}, nil)
+		w.w.PostMessage(&types.LabelList{Labels: labels})
 	}
 
 	return w.refreshQueriesAndThreads(updatedMboxes, threadEmails)
@@ -448,7 +448,7 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 				}
 				w.w.PostMessage(&types.DirectoryContents{
 					Uids: uids,
-				}, nil)
+				})
 			}
 
 		case *email.GetResponse:
@@ -462,7 +462,7 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 				if m.MailboxIDs[w.selectedMbox] {
 					w.w.PostMessage(&types.MessageInfo{
 						Info: w.translateMsgInfo(m),
-					}, nil)
+					})
 				}
 			}
 			err = w.cache.PutEmailState(r.State)

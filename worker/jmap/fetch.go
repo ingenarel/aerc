@@ -64,7 +64,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    w.translateMsgInfo(m),
-		}, nil)
+		})
 	}
 
 	if len(emailIdsToFetch) > 0 {
@@ -116,7 +116,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 			w.w.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    w.translateMsgInfo(m),
-			}, nil)
+			})
 		}
 	}
 
@@ -129,7 +129,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    w.translateMsgInfo(m),
-		}, nil)
+		})
 		if err := w.cache.PutEmail(m.ID, m); err != nil {
 			w.w.Warnf("PutEmail: %s", err)
 		}
@@ -185,7 +185,7 @@ func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart)
 			Reader: reader,
 			Uid:    msg.Uid,
 		},
-	}, nil)
+	})
 
 	return nil
 }
@@ -217,7 +217,7 @@ func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error
 				Reader: bytes.NewReader(buf),
 				Uid:    uid,
 			},
-		}, nil)
+		})
 	}
 
 	return nil

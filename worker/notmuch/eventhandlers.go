@@ -44,7 +44,7 @@ func (w *worker) updateDirCounts() error {
 			w.w.PostMessage(&types.DirectoryInfo{
 				Info:    w.getDirectoryInfo(name, query),
 				Refetch: w.query == query,
-			}, nil)
+			})
 		}
 	}
 
@@ -52,14 +52,14 @@ func (w *worker) updateDirCounts() error {
 		w.w.PostMessage(&types.DirectoryInfo{
 			Info:    w.getDirectoryInfo(name, query),
 			Refetch: w.query == query,
-		}, nil)
+		})
 	}
 
 	for name, query := range w.dynamicNameQueryMap {
 		w.w.PostMessage(&types.DirectoryInfo{
 			Info:    w.getDirectoryInfo(name, query),
 			Refetch: w.query == query,
-		}, nil)
+		})
 	}
 
 	return nil

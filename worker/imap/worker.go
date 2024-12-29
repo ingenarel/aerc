@@ -203,7 +203,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.newClient(c)
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	case *types.Reconnect:
 		if !w.observer.AutoReconnect() {
 			reterr = fmt.Errorf("auto-reconnect is disabled; run connect to enable it")
@@ -218,7 +218,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.newClient(c)
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	case *types.Disconnect:
 		// Reset the observer.
 		w.observer.SetAutoReconnect(false)
@@ -243,7 +243,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 		w.client = nil
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
 	case *types.OpenDirectory:
@@ -344,7 +344,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				Uid:           models.Uint32ToUid(msg.Uid),
 			},
 			Unsolicited: true,
-		}, nil)
+		})
 	case *client.ExpungeUpdate:
 		// We're notified of a message deletion. There are two cases:
 		//  1. It's linked to a deletion from aerc, hence we have an expunger
@@ -371,7 +371,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		if uid != 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Uids: []models.UID{models.Uint32ToUid(uid)},
-			}, nil)
+			})
 		}
 	}
 }
@@ -429,7 +429,7 @@ func (w *IMAPWorker) Run() {
 				w.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
+				})
 				break
 			}
 			w.worker.Tracef("ready to handle %T", msg)
@@ -439,12 +439,12 @@ func (w *IMAPWorker) Run() {
 			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
-				}, nil)
+				})
 			} else if err != nil {
 				w.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
+				})
 			}
 
 			w.startIdler()

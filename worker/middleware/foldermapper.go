@@ -99,7 +99,7 @@ func (f *folderMapper) ProcessAction(msg types.WorkerMessage) types.WorkerMessag
 	return f.WorkerInteractor.ProcessAction(msg)
 }
 
-func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.WorkerMessage)) {
+func (f *folderMapper) PostMessage(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
 		switch msg := msg.InResponseTo().(type) {
@@ -136,7 +136,7 @@ func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.Work
 	case *types.RemoveDirectory:
 		msg.Directory = f.outgoing(msg, msg.Directory)
 	}
-	f.WorkerInteractor.PostMessage(msg, cb)
+	f.WorkerInteractor.PostMessage(msg)
 }
 
 // folderMap contains the mapping between the ui and backend folder names

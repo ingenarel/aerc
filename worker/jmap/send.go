@@ -21,7 +21,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 	w.w.PostMessage(&types.MessageWriter{
 		Message: types.RespondTo(msg),
 		Writer:  send,
-	}, nil)
+	})
 
 	go func() {
 		defer log.PanicHandler()

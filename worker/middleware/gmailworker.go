@@ -90,9 +90,9 @@ func (g *gmailWorker) ProcessAction(msg types.WorkerMessage) types.WorkerMessage
 		g.PostMessage(&types.DirectoryContents{
 			Message: types.RespondTo(msg),
 			Uids:    uids,
-		}, nil)
+		})
 
-		g.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		g.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 
 		return &types.Unsupported{}
 
@@ -123,9 +123,9 @@ func (g *gmailWorker) ProcessAction(msg types.WorkerMessage) types.WorkerMessage
 		g.PostMessage(&types.SearchResults{
 			Message: types.RespondTo(msg),
 			Uids:    uids,
-		}, nil)
+		})
 
-		g.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		g.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 
 		return &types.Unsupported{}
 	}

@@ -137,10 +137,10 @@ func (o *observer) DelayedReconnect() error {
 func (o *observer) emit(errMsg string) {
 	o.worker.PostMessage(&types.Done{
 		Message: types.RespondTo(&types.Disconnect{}),
-	}, nil)
+	})
 	o.worker.PostMessage(&types.ConnError{
 		Error: fmt.Errorf("%s", errMsg),
-	}, nil)
+	})
 }
 
 func (o *observer) log(format string, args ...any) {

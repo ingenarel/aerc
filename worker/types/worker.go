@@ -14,7 +14,7 @@ type WorkerInteractor interface {
 	Actions() chan WorkerMessage
 	ProcessAction(WorkerMessage) WorkerMessage
 	PostAction(WorkerMessage, func(msg WorkerMessage))
-	PostMessage(WorkerMessage, func(msg WorkerMessage))
+	PostMessage(WorkerMessage)
 	Unwrap() WorkerInteractor
 	Name() string
 }
@@ -30,12 +30,11 @@ type Backend interface {
 type Worker struct {
 	Backend Backend
 
-	actions          chan WorkerMessage
-	actionCallbacks  map[int64]func(msg WorkerMessage)
-	messageCallbacks map[int64]func(msg WorkerMessage)
-	actionQueue      *list.List
-	status           int32
-	name             string
+	actions         chan WorkerMessage
+	actionCallbacks map[int64]func(msg WorkerMessage)
+	actionQueue     *list.List
+	status          int32
+	name            string
 
 	sync.Mutex
 	log.Logger
@@ -43,12 +42,11 @@ type Worker struct {
 
 func NewWorker(name string) *Worker {
 	return &Worker{
-		Logger:           log.NewLogger(name, 2),
-		actions:          make(chan WorkerMessage),
-		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
-		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
-		actionQueue:      list.New(),
-		name:             name,
+		Logger:          log.NewLogger(name, 2),
+		actions:         make(chan WorkerMessage),
+		actionCallbacks: make(map[int64]func(msg WorkerMessage)),
+		actionQueue:     list.New(),
+		name:            name,
 	}
 }
 
@@ -122,19 +120,10 @@ var WorkerMessages = make(chan WorkerMessage, 50)
 
 // PostMessage posts an message to the UI. This method should not be called
 // from the same goroutine that the UI runs in or deadlocks may occur
-func (worker *Worker) PostMessage(msg WorkerMessage,
-	cb func(msg WorkerMessage),
-) {
+func (worker *Worker) PostMessage(msg WorkerMessage) {
 	worker.setId(msg)
 	msg.setAccount(worker.name)
-
 	WorkerMessages <- msg
-
-	if cb != nil {
-		worker.Lock()
-		worker.messageCallbacks[msg.getId()] = cb
-		worker.Unlock()
-	}
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
@@ -156,19 +145,6 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 }
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
-	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
-		worker.Lock()
-		f, ok := worker.messageCallbacks[inResponseTo.getId()]
-		worker.Unlock()
-		if ok {
-			f(msg)
-			if _, ok := msg.(*Done); ok {
-				worker.Lock()
-				delete(worker.messageCallbacks, inResponseTo.getId())
-				worker.Unlock()
-			}
-		}
-	}
 	return msg
 }
 

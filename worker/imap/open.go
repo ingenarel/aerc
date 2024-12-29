@@ -17,15 +17,15 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 		return
 	}
 	select {
 	case <-msg.Context.Done():
-		imapw.worker.PostMessage(&types.Cancelled{Message: types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Cancelled{Message: types.RespondTo(msg)})
 	default:
 		imapw.selected = sel
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }
 
@@ -35,7 +35,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	imapw.worker.Tracef("Fetching UID list")
@@ -55,7 +55,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			imapw.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 			return
 		}
 		// copy in reverse as msgList displays backwards
@@ -71,14 +71,14 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			imapw.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
-			}, nil)
+			})
 			return
 		}
 	}
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	imapw.worker.Tracef("Found %d UIDs", len(uids))
@@ -90,8 +90,8 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	imapw.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
 		Uids:    models.Uint32ToUidList(uids),
-	}, nil)
-	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	})
+	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 }
 
 type sortFieldMapT map[types.SortField]sortthread.SortField
@@ -125,7 +125,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	imapw.worker.Tracef("Fetching threaded UID list")
@@ -137,7 +137,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 		return
 	}
 	aercThreads, count := convertThreads(threads, nil)
@@ -157,14 +157,14 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
-		}, nil)
+		})
 		return
 	}
 	imapw.worker.PostMessage(&types.DirectoryThreaded{
 		Message: types.RespondTo(msg),
 		Threads: aercThreads,
-	}, nil)
-	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	})
+	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 }
 
 func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*types.Thread, int) {

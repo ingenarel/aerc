@@ -63,16 +63,16 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 		return
 	}
 	if err := imapw.client.Expunge(nil); err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)})
 	}
 }
 
@@ -90,7 +90,7 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 					Flags: translateImapFlags(_msg.Flags),
 					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
-			}, nil)
+			})
 			return nil
 		})
 }
@@ -110,7 +110,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 				ReplaceFlags: true,
-			}, nil)
+			})
 			return nil
 		})
 }
@@ -122,7 +122,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   fmt.Errorf("label toggling not supported"),
-		}, nil)
+		})
 		return
 	}
 	if imapw.config.provider == Proton {
@@ -134,7 +134,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 					Message: types.RespondTo(msg),
 					Error: fmt.Errorf("Proton labels can only " +
 						"be removed from their virtual folder"),
-				}, nil)
+				})
 				return
 			}
 		}
@@ -189,7 +189,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 					imapw.worker.PostMessage(&types.Error{
 						Message: types.RespondTo(msg),
 						Error:   err,
-					}, nil)
+					})
 				}
 			}
 			// Refresh the impacted virtual folders;
@@ -201,7 +201,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 			imapw.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   fmt.Errorf("operation only supported for GMail and Proton"),
-			}, nil)
+			})
 			return
 		}
 	}
@@ -236,7 +236,7 @@ func (imapw *IMAPWorker) handleStoreOps(
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
-		}, nil)
+		})
 	}
 
 	set := toSeqSet(uids)
@@ -252,5 +252,5 @@ func (imapw *IMAPWorker) handleStoreOps(
 		Directories: []string{imapw.selected.Name},
 	}, nil)
 	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+		&types.Done{Message: types.RespondTo(msg)})
 }
